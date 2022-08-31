@@ -1,0 +1,25 @@
+
+int tmin();
+int test_tmin();
+int bitOr(int, int);
+int test_bitOr(int, int);
+int negate(int);
+int test_negate(int);
+int isEqual(int, int);
+int test_isEqual(int, int);
+int subtractionOK(int, int);
+int test_subtractionOK(int, int);
+int isAsciiDigit(int);
+int test_isAsciiDigit(int);
+int satAdd(int, int);
+int test_satAdd(int, int);
+int dividePower2(int, int);
+int test_dividePower2(int, int);
+int replaceByte(int, int, int);
+int test_replaceByte(int, int, int);
+unsigned floatAbsVal(unsigned);
+unsigned test_floatAbsVal(unsigned);
+int floatIsEqual(unsigned, unsigned);
+int test_floatIsEqual(unsigned, unsigned);
+unsigned floatScale2(unsigned);
+unsigned test_floatScale2(unsigned);
