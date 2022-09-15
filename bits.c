@@ -14,7 +14,7 @@
  *   Rating: 1
  */
 int tmin(void) {
-  return 2;
+  return (1 << 31);
 }
 
 /*
@@ -26,7 +26,7 @@ int tmin(void) {
  *   Rating: 1
  */
 int bitOr(int x, int y) {
-  return 2;
+  return ~((~x) & (~y));
 }
 
 /*
@@ -38,7 +38,7 @@ int bitOr(int x, int y) {
  *   Rating: 1
  */
 int negate(int x) {
-  return 2;
+  return (~x + 1);
 }
 
 /*
@@ -50,7 +50,7 @@ int negate(int x) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
-  return 2;
+  return !(x^y);
 }
 
 /*
@@ -62,7 +62,11 @@ int isEqual(int x, int y) {
  *   Rating: 3
  */
 int subtractionOK(int x, int y) {
-  return 2;
+  int diff = x + ~y + 1;
+  int sign_x = x >> 31;
+  int sign_y = y >> 31;
+  int sign_diff = diff >> 31;
+  return (!(sign_x ^ sign_y) | !(sign_diff ^ sign_x));
 }
 
 /*
@@ -75,7 +79,9 @@ int subtractionOK(int x, int y) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int min = (x + ~0x2F);
+  int max = (x + ~0x39);
+  return (!(min >> 31)) & (max >> 31);
 }
 
 /*
@@ -89,7 +95,15 @@ int isAsciiDigit(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-  return 2;
+  // int oflow=(x^(x+y))>>31;
+  int sum = x + y;
+  int oflow_sign = ((x^sum)&(y^sum))>>31;
+  int max = (oflow_sign << 31);
+  int min = (sum >> (oflow_sign & 0x1F));
+  //if (oflow_sign) {
+  //  return sum >> 31;
+  //}
+  return min + max;
 }
 
 /*
@@ -101,7 +115,8 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int dividePower2(int x, int n) {
-    return 2;
+  int sign_check = (((x >> 31) & 0x01)<<n)+(x>>31);
+  return ((x+sign_check)>>n);
 }
 
 /* 
@@ -114,7 +129,9 @@ int dividePower2(int x, int n) {
  *   Rating: 3
  */
 int replaceByte(int x, int n, int c) {
-  return 2;
+  int c_ = c << (n << 3);
+  int mask = ~(0xFF << (n << 3));
+  return (x&mask)+c_;
 }
 
 /*
@@ -129,7 +146,11 @@ int replaceByte(int x, int n, int c) {
  *   Rating: 2
  */
 unsigned floatAbsVal(unsigned uf) {
-  return 2;
+  unsigned abs = uf & 0x7FFFFFFF;
+  if (abs > 0x7f800000) {
+    return uf;
+  }
+  return abs;
 }
 
 /*
@@ -144,7 +165,14 @@ unsigned floatAbsVal(unsigned uf) {
  *   Rating: 3
  */
 int floatIsEqual(unsigned uf, unsigned ug) {
-    return 2;
+  int mask = ~(1 << 31);
+  if (((uf & 0x7FFFFFFF) > 0x7F800000) || ((ug & 0x7FFFFFFF) > 0x7F800000)) {
+    return 0;
+  }
+  if (((uf&mask) == 0) && (ug&mask)==0) {
+    return 1;
+  }
+  return (uf==ug);
 }
 
 /*
@@ -159,5 +187,19 @@ int floatIsEqual(unsigned uf, unsigned ug) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int check = (uf>>23)&0xFF;
+  int val = uf & 0x80000000;
+  if (uf == 0x80000000){
+     return uf;
+  }
+  if ((uf&0x7F800000) == 0x7F800000) {
+    return uf;
+  }
+	if((uf&0x7F800000) == 0) {
+		return ((uf<<1) | val);
+	}
+  if (++check == 0xFF) {
+    return (0x7F800000|val);
+  }
+	return (uf + 0x00800000);
 }
